@@ -1,5 +1,5 @@
-# I'm in the abandoned city of Pripyat
-===
+# Pripyat
+
 
 ## Setup
 ```
