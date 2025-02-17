@@ -1,18 +1,39 @@
 import cv2
 import numpy as np
 import json
+import os
+import sys
+
 # Load YOLO model
 net = cv2.dnn.readNet("./assets/yolov3.weights", "./assets/darknet/cfg/yolov3.cfg")
 
-# Initialize webcam
-cap = cv2.VideoCapture(0)
+# Check for folder argument
+folder = None
+if len(sys.argv) > 1:
+    folder = sys.argv[1]
 
+# Initialize image list if folder is provided
+images = []
+if folder:
+    images = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
+    images.sort()
+
+# Initialize webcam if no folder is provided
+cap = None
+if not images:
+    cap = cv2.VideoCapture(0)
+
+index = 0
 while True:
-    # Capture frame from webcam
-    ret, image = cap.read()
-    if not ret:
-        print("Failed to grab frame")
-        break
+    # Capture frame from webcam or load image from folder
+    if images:
+        image = cv2.imread(images[index])
+        index = (index + 1) % len(images)
+    else:
+        ret, image = cap.read()
+        if not ret:
+            print("Failed to grab frame")
+            break
 
     # Get image dimensions
     (height, width) = image.shape[:2]
@@ -75,12 +96,13 @@ while True:
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # Show the image
-    cv2.imshow("Webcam", image)
+    cv2.imshow("Webcam" if not images else "Image", image)
     
-    # Wait for 10 seconds or until 'q' is pressed
+    # Wait for 5 seconds or until 'q' is pressed
     if cv2.waitKey(5000) & 0xFF == ord('q'):
         break
 
 # Release webcam and close windows
-cap.release()
+if cap:
+    cap.release()
 cv2.destroyAllWindows()
